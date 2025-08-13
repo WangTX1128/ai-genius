@@ -35,10 +35,17 @@ class CustomBrowser(Browser):
 
     async def new_context(self, config: BrowserContextConfig | None = None) -> CustomBrowserContext:
         """Create a browser context"""
-        browser_config = self.config.model_dump() if self.config else {}
-        context_config = config.model_dump() if config else {}
-        merged_config = {**browser_config, **context_config}
-        return CustomBrowserContext(config=BrowserContextConfig(**merged_config), browser=self)
+        # Create custom context with proper initialization
+        custom_context = CustomBrowserContext(
+            browser=self,
+            config=config,
+            state=None
+        )
+        
+        # Initialize the session (this sets up _context and session)
+        await custom_context._initialize_session()
+        
+        return custom_context
 
     async def _setup_builtin_browser(self, playwright: Playwright) -> PlaywrightBrowser:
         """Sets up and returns a Playwright Browser instance with anti-detection measures."""
